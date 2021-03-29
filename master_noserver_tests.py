@@ -38,9 +38,9 @@ if __name__ == "__main__":
                 tupla = (JOB_ID, instruccion[0], instruccion[numFile], len(instruccion)-1)
                 r.lpush(keyCola, tupla)
                 numFile += 1
-            while r.lindex(JOB_ID, -1) != "done":
+            while r.lindex(JOB_ID, 0) != "done":
                 pass
-            print(r.lpop(JOB_ID))
+            print(r.lindex(JOB_ID, -1))
         
          
         #si instruccion no es valida
