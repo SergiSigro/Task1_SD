@@ -5,17 +5,28 @@ import redis
 WORKERS = {}
 WORKER_ID = 0
 
+#Separa los campos del string "dirty_task" y los mete en un diccionario que retorna
+#Se asume que a estas alturas del programa los campos son todos correctos
+def clean_task(dirty_task):
+    fields = dirty_task.split(",")
+    fields = { 'ID':fields[0], 'Operation':fields[1], 'File':fields[2], 'NumFiles':fields[3]}
+    return fields
+
+#Analiza la tarea
 def work_to_do(task, tareas):
     if not task:
         return
     else:
-        #Analizar la tarea
+        #Separamos los campos y los guardamos en un diccionario:
+        polished_task = clean_task(task)
+        
+        
         
 
 def start_worker(id):
     keyCola="inst"
     print('Worker: ', id)
-    tareas = redis.Redis(host='localhost', port=6379, db=0) #Creamos la conexión con la cola de tareas (servidor redis)
+    tareas = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True) #Creamos la conexión con la cola de tareas (servidor redis)
     while True:
         #Comprobar si tenemos tareas
         task=tareas.rpop(keyCola)
