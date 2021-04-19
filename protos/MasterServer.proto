@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+//
+// MasterServer s'encarrega d'enviar les tasques que vol el client a una cua redis
+// i uns workers realitzaran les tasques que es demanen i retornaran el resultat
+service MasterServer{
+    //
+    // Counting words: compta el nombre total de paraules
+    // en diferents fitxers de text o entrades de text
+    rpc GetResultatCW(input) returns (resultat) {}
+
+    //
+    // Word Count: compta el nombre d'ocurrències de
+    // cada paraula en un fitxer de text
+    rpc GetResultatWC(input) returns (resultat) {}
+
+    //
+    // CreateWorker: Crea un numero de workers
+    // Minim entrada = 1
+    rpc CreateWorker(numero) returns (resultat) {}
+
+    //
+    // DeleteWorker: Elimina un numero de workers
+    // Minim entrada = 1
+    // Maxim entrada = total de workers
+    rpc DeleteWorker(numero) returns (resultat) {}
+
+    //
+    // ListWorkers: Mostra la llista dels workers
+    rpc ListWorkers(empty) returns (resultat) {}
+}
+
+//
+//Entrada workers
+message numero {
+    int32 num = 1;
+}
+//
+//Entrada jobs
+message input {
+    string fitxers = 1;
+}
+
+//
+//Sortida
+message resultat {
+    string resultat = 1;
+}
+
+//
+// Empty message
+message empty {}
