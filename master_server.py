@@ -18,35 +18,45 @@ class MasterServerServicer(MasterServer_pb2_grpc.MasterServerServicer):
     def __init__(self):
         self.JOB_ID = 0 #numero del trabajo == key para obtener el resultado de la operacion
         self.NUM_WORKERS = 0 #numero de workers
-        self.r = redis.Redis(host='localhost', port=6379, db=0)  #crear servidor redis
+        self.r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)  #crear servidor redis
         self.r.flushall()    #eliminamos todo lo que estuviese en el redis anteriormente
         self.keyCola = "inst"    #key de la cola de instrucciones
 
     def GetResultatCW(self, request, context):
+        if self.NUM_WORKERS == 0:
+            return MasterServer_pb2.resultat(resultat="Es necessita tenir com a minim un worker")
         files = request.fitxers.split()
         self.JOB_ID += 1
         numFiles = len(files)
         for i in files:
-            tupla = (self.JOB_ID, "CountingWords", i, numFiles)
-            self.r.lpush(self.keyCola, tupla)
-        while self.r.lindex(self.JOB_ID, 0) != "done":
-            pass
-        resultat = self.r.lindex(self.JOB_ID, -1)
-        self.r.delete(self.JOB_ID)
+            task = ""+str(self.JOB_ID)+", CountingWords, "+i+", "+str(numFiles)
+            self.r.lpush(self.keyCola, task)
+        while self.r.lindex(str(self.JOB_ID), 0) != "done":
+            pass 
+        resultat = self.r.lindex(str(self.JOB_ID), -1)
+        fitxers = self.r.lindex(str(self.JOB_ID), -2)
+        self.r.delete(str(self.JOB_ID))
+        if resultat == -1:
+            return MasterServer_pb2.resultat(resultat="Fitxers incorrectes:\n"+fitxers)
         return MasterServer_pb2.resultat(resultat="Total de paraules contades en els fitxers: " + str(files) + " = " + str(resultat))
     
     def GetResultatWC(self, request, context):
-
+        if self.NUM_WORKERS == 0:
+            return MasterServer_pb2.resultat(resultat="Es necessita tenir com a minim un worker")
         files = request.fitxers.split()
         self.JOB_ID += 1
         numFiles = len(files)
         for i in files:
-            tupla = (self.JOB_ID, "WordCount", i, numFiles)
-            self.r.lpush(self.keyCola, tupla)
-        while self.r.lindex(self.JOB_ID, 0) != "done":
-            pass
-        resultat = self.r.lindex(self.JOB_ID, -1)
-        self.r.delete(self.JOB_ID)
+            task = ""+str(self.JOB_ID)+",WordCount,"+i+","+str(numFiles)
+            
+            self.r.lpush(self.keyCola, task)
+        while self.r.lindex(str(self.JOB_ID), 0) != "done":
+            pass 
+        resultat = self.r.lindex(str(self.JOB_ID), -1)
+        fitxers = self.r.lindex(str(self.JOB_ID), -2)
+        self.r.delete(str(self.JOB_ID))
+        if resultat == "-1":
+            return MasterServer_pb2.resultat(resultat="Fitxers incorrectes:\n"+fitxers)
         return MasterServer_pb2.resultat(resultat="Resultat de WordCount dels fitxers: " + str(files) + "\n" + resultat)
 
     def CreateWorker(self, request, context):

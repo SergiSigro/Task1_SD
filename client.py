@@ -52,12 +52,12 @@ def run():
                         if len(sys.argv) != 4:
                             create_worker(stub, genNumero(1))
                         else:
-                            create_worker(stub, genNumero(sys.argv[4]))
+                            create_worker(stub, genNumero(sys.argv[3]))
                     elif sys.argv[2] == 'delete':
                         if len(sys.argv) != 4:
                             delete_worker(stub, genNumero(1))
                         else:
-                            delete_worker(stub, genNumero(sys.argv[4]))
+                            delete_worker(stub, genNumero(sys.argv[3]))
                     elif sys.argv[2] == 'list':
                         list_workers(stub)
                 else:
@@ -65,12 +65,12 @@ def run():
             elif sys.argv[1] == 'job':
                 if len(sys.argv) > 2:
                     if sys.argv[2] == 'run-wordcount':
-                        if len(sys.argv) != 4:
+                        if len(sys.argv) < 4:
                             print("Necesites introduir un fitxer de entrada.")
                         else:
                             word_count(stub, genInputFiles())
                     elif sys.argv[2] == 'run-countwords':
-                        if len(sys.argv) != 4:
+                        if len(sys.argv) < 4:
                             print("Necesites introduir un fitxer de entrada.")
                         else:
                             count_words(stub, genInputFiles())
