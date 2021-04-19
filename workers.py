@@ -7,6 +7,7 @@ import requests
 WORKERS = {}
 WORKER_ID = 0
 
+<<<<<<< HEAD
 
 def notify_redis(clean_task, results, result):
     if clean_task['NumFiles'] is '1':
@@ -64,14 +65,39 @@ def start_worker(id):
         task=tareas.rpop(keyCola)
         work_to_do(task, tareas)
         time.sleep(2.5)
+=======
+def start_worker(id,redis):
+    while True:
+        #pop de la cua del redis
+        #Cosas que rebem:       Tasca, Fitxer, JOBID, num_fitxers
+        #   Si 3 parametre no es fitxer fer suma (?) 
+        #   Path 1: Ficar al redis resulat de la tasca amb la key de JOBID (?)
+        #           
+        # 
+        #   Path 2: Veure quins workers tenen la mateixa JOBID (?)
+        #           Comunicacio entre workers
+        #           
+        #   
+        #   
+        #   OBJECTIU SUMAR TOTS ELS RESULTATS!!!!
+        # 
+        pass   
+>>>>>>> b7af416ffe15b629cf37e9dcf8d96cf101a8e0be
 
 
-def create_worker():
+
+
+def createWorker(redis):
     global WORKERS
     global WORKER_ID
 
-    proc = Process(target=start_worker, args=(WORKER_ID,))
+    proc = Process(target=start_worker, args=(WORKER_ID,redis))
     proc.start()
     WORKERS[WORKER_ID] = proc
     
     WORKER_ID += 1
+
+def deleteWorker():
+    pass
+def listWorkers():
+    pass
