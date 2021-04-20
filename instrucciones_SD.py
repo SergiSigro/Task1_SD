@@ -32,7 +32,6 @@ def wordCount(nombreFichero):
 
             for caracter in eliminar:
                 texto=texto.replace(caracter,"")
-
             texto=texto.lower()
             palabras = texto.split(" ")
 
