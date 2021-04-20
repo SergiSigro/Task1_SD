@@ -2,63 +2,33 @@ import sys
 import re
 import string
 
-def countingWords(nombreFichero):
+def countingWords(texto):
     contador=0
-    try:
-        with open(nombreFichero) as file_t:
-            texto=file_t.read()
-            #print(texto)
-
-    except FileNotFoundError:
-        mensaje="No existe el archivo " ,nombreFichero
-        print(mensaje)
-    else:
-        palabras=texto.split()
-        contador=len(palabras)
-
-    finally:
-        file_t.close()
+    palabras=texto.split()
+    contador=len(palabras)
     return contador
 
 
 
 
-def wordCount(nombreFichero):
-    try:
+def wordCount(texto):
         eliminar = ",;:.!¡¿?#"
-        with open(nombreFichero) as file_t:
-            texto=file_t.read()
-            texto=texto.replace("\n"," ")
+        #texto=texto.replace("\n"," ")
+        texto = texto.translate({ord(c): " " for c in "\n"})
+        texto = texto.translate({ord(c): None for c in eliminar})
+        #for caracter in eliminar:
+        #   texto=texto.replace(caracter,"")
+        texto=texto.lower()
+        palabras = texto.split(" ")
+        #print(texto)
+        diccionario_frecuencias = {}
 
-            for caracter in eliminar:
-                texto=texto.replace(caracter,"")
-            texto=texto.lower()
-            palabras = texto.split(" ")
+        for palabra in palabras:
+            if palabra in diccionario_frecuencias:
+               diccionario_frecuencias[palabra] += 1
+            else:
+                diccionario_frecuencias[palabra] = 1
 
-            print(palabras)
-            
-            diccionario_frecuencias = {}
+        diccionario_frecuencias.pop('', None)
+        return diccionario_frecuencias
 
-            for palabra in palabras:
-                if palabra in diccionario_frecuencias:
-                    diccionario_frecuencias[palabra] += 1
-                else:
-                    diccionario_frecuencias[palabra] = 1
-
-            for palabra in diccionario_frecuencias:
-                frecuencia = diccionario_frecuencias[palabra]
-                print("'"+palabra+"'," , frecuencia,";")
-
-    except FileNotFoundError:
-        mensaje="No existe el archivo ", nombreFichero
-        print(mensaje)
-
-    finally:
-        file_t.close()
-
-print("COUNTING WORDS:")
-nombre=sys.argv[1]
-nPalabras=countingWords(nombre)
-print("En el fichero hay ",nPalabras," palabras")
-print("WORD COUNT:")
-wordCount(nombre)

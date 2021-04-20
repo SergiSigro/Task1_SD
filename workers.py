@@ -3,38 +3,74 @@ from flask import Flask
 import time
 import redis
 import requests
+import instrucciones_SD
 
 WORKERS = {}
 WORKER_ID = 0
 
+
+def is_error(n):
+    try:
+        if int(n) == -1:
+            return True
+        return False
+    except ValueError:
+        return False
+
+
 def notify_redis(clean_task, results, result):
     correcto=True
+    #print(clean_task)
     if clean_task['NumFiles'] is '1':
-        results.lpush(clean_task['ID'], result)
+        results.lpush(clean_task['ID'], str(result))
         results.lpush(clean_task['ID'], clean_task['File'])
         results.lpush(clean_task['ID'], "done")
         
     if int(clean_task['NumFiles']) > 1:
         if results.llen(clean_task['ID']) < 2*(int(clean_task['NumFiles']) - 1 ):
-            results.rpush(clean_task['ID'], result)
+            #print("Fichero no ultimo")
+            results.rpush(clean_task['ID'], str(result))
             results.lpush(clean_task['ID'], clean_task['File'])
         else:
             total=0
             i=0
             fitx=""
+            dic={}
             while i<int(clean_task['NumFiles'])-1:
-                
-                num=int(results.rpop(clean_task['ID']))
-                if num == -1:
+                valor = results.rpop(clean_task['ID'])
+                #print(valor)
+                #print(is_error(valor))
+                if is_error(valor):
                     correcto=False
                     fitx+=results.lpop(clean_task['ID'])+"\n"
                 else:
-                    results.lpop(clean_task['ID'])
-                    total = total + num
+                    if  'CountingWords' in clean_task['Operation']:
+                        num=int(valor)
+                        results.lpop(clean_task['ID'])
+                        total = total + num
+                    else:
+                        subDic = eval(valor)
+                        for subKey in subDic:
+                            if subKey in dic:
+                                dic[subKey] += subDic[subKey]
+                            else:
+                                dic[subKey] = subDic[subKey]
+                        results.lpop(clean_task['ID'])
                 i += 1
+            if result == -1:
+                correcto=False
             if correcto:
-                total = total + result
-                results.lpush(clean_task['ID'], total)
+                if  'CountingWords' in clean_task['Operation']:
+                    total = total +result
+                    results.lpush(clean_task['ID'], total)
+                else:
+                    for subKey in result:
+                        if subKey in dic:
+                            dic[subKey] += result[subKey]
+                        else:
+                            dic[subKey] = result[subKey]
+                    dic=sorted(dic.items())
+                    results.lpush(clean_task['ID'], str(dic))
                 results.lpush(clean_task['ID'], "done")
             else:
                 if result == -1:
@@ -42,7 +78,6 @@ def notify_redis(clean_task, results, result):
                 results.lpush(clean_task['ID'], -1)
                 results.lpush(clean_task['ID'], fitx)
                 results.lpush(clean_task['ID'], "done")
-
 
 
             #for i in range(results.llen(clean_task['ID'])):
@@ -69,19 +104,15 @@ def work_to_do(task, tareas):
         #Separamos los campos y los guardamos en un diccionario:
         polished_task = clean_task(task)
         fitxer = requests.get(polished_task['File'])
-        
         if fitxer.status_code != 404:
-            print('Llegint fitxer ubicat a '+polished_task['File']+' ----> ',fitxer.text)
-            #EN fitxer.text HI HA EL TEXT DEL FITXER
-            #ARA CALDRIA CRIDAR A LA FUNCIO CORRESPONENT
-            if 'CountWords' in polished_task['Operation']:
-                #CRIDAR A LA FUNCIO CountWords
-                print('Hem toca CountWords---->',polished_task['Operation'])
+            #print('Llegint fitxer ubicat a '+polished_task['File']+' ----> ',fitxer.text)
+            if 'CountingWords' in polished_task['Operation']:
+                result = instrucciones_SD.countingWords(fitxer.text)
+                #print('Hem toca CountWords---->',polished_task['Operation'])
             if 'WordCount' in polished_task['Operation']:
-                #CRIDAR A LA FUNCIO wordCount
-                print('Hem toca WordCount---->',polished_task['Operation'])
-            #UNA VEZ OBTENGAMOS EL RESULTADO NOS TOCARA ACTUALIZAR REDIS
-            result=5
+                #print('Hem toca WordCount---->',polished_task['Operation'])
+                result = instrucciones_SD.wordCount(fitxer.text)
+                #print(result)
             notify_redis(polished_task, tareas, result)
         else:
             

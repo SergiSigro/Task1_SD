@@ -29,14 +29,15 @@ class MasterServerServicer(MasterServer_pb2_grpc.MasterServerServicer):
         self.JOB_ID += 1
         numFiles = len(files)
         for i in files:
-            task = ""+str(self.JOB_ID)+", CountingWords, "+i+", "+str(numFiles)
+            task = ""+str(self.JOB_ID)+",CountingWords,"+i+","+str(numFiles)
             self.r.lpush(self.keyCola, task)
         while self.r.lindex(str(self.JOB_ID), 0) != "done":
             pass 
         resultat = self.r.lindex(str(self.JOB_ID), -1)
+        #print('Resultat master: ', resultat)
         fitxers = self.r.lindex(str(self.JOB_ID), -2)
         self.r.delete(str(self.JOB_ID))
-        if resultat == -1:
+        if resultat == '-1':
             return MasterServer_pb2.resultat(resultat="Fitxers incorrectes:\n"+fitxers)
         return MasterServer_pb2.resultat(resultat="Total de paraules contades en els fitxers: " + str(files) + " = " + str(resultat))
     
