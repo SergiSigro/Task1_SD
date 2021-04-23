@@ -31,7 +31,8 @@ def delete_worker(stub, num):
     print(resultat.resultat)
 
 def list_workers(stub):
-    resultat = stub.ListWorkers()
+    aux = MasterServer_pb2.empty()
+    resultat = stub.ListWorkers(aux)
     print(resultat.resultat)
 
 def word_count(stub, files):

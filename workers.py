@@ -151,8 +151,21 @@ def deleteWorker():
     WORKER_ID -= 1
     proc = WORKERS[WORKER_ID]
     proc.terminate()
+    
     print("TERMINATED Worker: ", WORKER_ID)
     
 
 def listWorkers():
-    pass
+    global WORKERS
+    global WORKER_ID
+    if WORKER_ID == 0:
+        llistat = "No hi han workers."
+    else:
+        i=0
+        llistat = "Workers:\n"
+        while i < WORKER_ID:
+            proc = WORKERS[i]
+            llistat += "Worker "+str(i)+"\n"
+            i += 1
+    return llistat
+        
